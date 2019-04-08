@@ -4,31 +4,12 @@ from sqlalchemy import create_engine
 
 
 def load_data(messages_filepath, categories_filepath):
-    """
-    loads dataframes from specified filepaths
-    arguments:
-        messages_filepath: path to the messages csv file
-        categories_filepath: path to the categories csv file        
-    return:
-        messages: dataframe with messages table
-        categories: dataframe with categories table
-    """
-    
     messages = pd.read_csv(messages_filepath)
     categories = pd.read_csv(categories_filepath)
     
     return messages, categories
 
 def clean_data(messages, categories):
-    """
-    cleans and merges messages and categories dataframes
-    arguments:
-        messages: dataframe with messages table
-        categories: dataframe with categories table
-    return:
-        df: merged and cleaned dataframe with messages and categories information
-    """
-
     # merge both datasets
     df = pd.merge(messages, categories, on='id')
     
@@ -62,23 +43,11 @@ def clean_data(messages, categories):
 
 
 def save_data(df, database_filename):
-    """
-    saves dataframe as table in a sql database
-    arguments:
-        df: dataframe to save in sql database
-        database_filename: name of the sql database
-    """
-    
     engine = create_engine('sqlite:///' + database_filename.replace('/', '//'))
     df.to_sql('messages', engine, index=False, if_exists='replace')
 
 
 def main():
-    """
-    loads, cleans and merges messages and categories data 
-    and saves it in a sql database
-    """
-    
     if len(sys.argv) == 4:
         print(sys.argv)
         messages_filepath, categories_filepath, database_filepath = sys.argv[1:]
