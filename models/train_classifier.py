@@ -133,8 +133,15 @@ def build_model():
         ])),
         ('clf', MultiOutputClassifier(RandomForestClassifier(n_estimators=100))),
     ])
+    
+    parameters = {
+        'features__text_pipeline__vect__ngram_range': ((1, 1), (1, 2)),
+        'clf__estimator__min_samples_split': (2, 5),
+    }
+
+    cv = GridSearchCV(pipeline, param_grid=parameters, cv=3)
                            
-    return pipeline
+    return cv
                          
 def evaluate_model(model, X_test, y_test, category_names):
     """
@@ -149,6 +156,14 @@ def evaluate_model(model, X_test, y_test, category_names):
     
     # predict the test data
     y_pred_test = model.predict(X_test)
+
+    # report the performance
+    for ii, cat in enumerate(category_names):
+        print("Category {0}:".format(cat))
+        print("Recall - {:.2f}".format(recall_score(y_test[:, ii] > 0.5, y_pred_test[:, ii] > 0.5)))
+        print("Precision - {:.2f}".format(precision_score(y_test[:, ii] > 0.5, y_pred_test[:, ii] > 0.5)))
+        print("F1 Score - {:.2f}".format(f1_score(y_test[:, ii] > 0.5, y_pred_test[:, ii] > 0.5)))
+        print("----------")
 
 
 def save_model(model, model_filepath):
