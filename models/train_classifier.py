@@ -20,6 +20,16 @@ import nltk
 nltk.download(['wordnet', 'punkt', 'averaged_perceptron_tagger'])
 
 def load_data(database_filepath):
+    """
+    loads dataframes from specified filepaths
+    arguments:
+        database_filepath: path to the sql database containing the relevant data        
+    return:
+        X: predictor variable that contains the text messages
+        y: response variable that contains the message categories
+        category_names: names of the message categories
+    """
+    
     # load data from database
     engine = create_engine('sqlite:///' + database_filepath.replace('/', '//'))
     df = pd.read_sql_table('messages', con=engine)
@@ -40,6 +50,14 @@ def load_data(database_filepath):
                            
 # extract the parts of speech in each message
 def tokenize_pos(msg):
+    """
+    loads dataframes from specified filepaths
+    arguments:
+        msg: string that contains a text message
+    return:
+        pos_tags: part of speech tags of the given message 
+    """
+    
     tokens = tokenize_word(msg)
     try:
         pos_tags = list(zip(*nltk.pos_tag(tokens)))[1]
@@ -52,6 +70,14 @@ def tokenize_pos(msg):
                          
 # get the length of each message
 class MessageLength(BaseEstimator, TransformerMixin):
+    """
+    class that extracts the message length from a text message
+    methods:
+        msg_len: returns the number of words in a text message
+        fit: fits the estimator to the given messages
+        transform: gets the length of each text message
+    """
+    
     def msg_len(self, msg):
         return len(tokenize_word(msg))
 
@@ -63,6 +89,15 @@ class MessageLength(BaseEstimator, TransformerMixin):
         return pd.DataFrame(X)
 
 def tokenize_word(text):
+    """
+    function that returns a list of lemmatized and stemmed
+    words of a text message
+    arguments:
+        text: string that contains a text message
+    return:
+        token: list of lemmatized and stemmed words 
+    """
+    
     # transform string to lowercase
     text = text.lower()
     # substitute any characters but letters and numbers
@@ -77,6 +112,13 @@ def tokenize_word(text):
     return token
 
 def build_model():
+    """
+    loads dataframes from specified filepaths
+    return:
+        model: cross validated grid search object that contains the 
+            specified machine learning pipeline
+    """
+    
     pipeline = Pipeline([
         ('features', FeatureUnion([
             ('text_pipeline', Pipeline([
@@ -94,16 +136,39 @@ def build_model():
                            
     return pipeline
                          
-def evaluate_model(model, X_test, y_test, category_names):    
+def evaluate_model(model, X_test, y_test, category_names):
+    """
+    evaluates the performance of the model using the test data with the 
+    recall, precision and f_1 score metrics
+    arguments:
+        model: machine learning model that was trained using the train data
+        X_test: test predictor variable containing the test text messages
+        y_test: test response variable containing the test text message categories
+        category_names: name of the different text message categories
+    """
+    
     # predict the test data
     y_pred_test = model.predict(X_test)
 
 
 def save_model(model, model_filepath):
+    """
+    saves the trained machine learning model to a pickle file at a specified path
+    arguments:
+        model: trained machine learning model
+        model_filepath: path where the trained model should be saved
+    """
+    
     with open(model_filepath, 'wb') as file:
         pickle.dump(model, file)
 
 def main():
+    """
+    main function that loads the data from a sql database, builds the model,
+    fits the model to the loaded data and scores the performance using the test data.
+    Finally, the model is saved to a specified filepath.
+    """
+
     if len(sys.argv) == 3:
         database_filepath, model_filepath = sys.argv[1:]
         print('Loading data...\n    DATABASE: {}'.format(database_filepath))
